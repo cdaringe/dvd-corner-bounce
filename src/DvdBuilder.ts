@@ -8,6 +8,7 @@ export class DvdScene extends Scene {
   public dvd!: Phaser.Physics.Arcade.Sprite
   public onCornerHit: OnEdgeHit
   public onEdgeHit: OnEdgeHit
+  public isNameSelectMode: boolean = false
   public textNodes!: [
     Phaser.GameObjects.Text,
     Phaser.GameObjects.Text,
@@ -19,11 +20,13 @@ export class DvdScene extends Scene {
     props: Phaser.Types.Scenes.SettingsConfig & {
       onCornerHit: OnEdgeHit
       onEdgeHit: OnEdgeHit
+      isNameSelectMode: boolean
     }
   ) {
     super(props)
     this.onCornerHit = props.onCornerHit
     this.onEdgeHit = props.onEdgeHit
+    this.isNameSelectMode = props.isNameSelectMode
   }
 
   preload () {
@@ -61,6 +64,7 @@ export class DvdScene extends Scene {
     dvd.setVelocity(100, 200)
     dvd.setBounce(1, 1)
     dvd.setCollideWorldBounds(true)
+    if (!this.isNameSelectMode) return
     const velocityInterval: NodeJS.Timeout = setInterval(() => {
       try {
         const { x, y } = dvd.body.velocity
@@ -128,6 +132,4 @@ export class DvdScene extends Scene {
       if (isOnBound) onWorldBounds()
     }
   }
-
-  update () {}
 }

@@ -4,33 +4,33 @@ import { RotatingDeque } from './RotatingDeque'
 import debounce from 'lodash/debounce'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { SelectUs, NameCard } from './SelectUs'
+import { NameCard } from './SelectUs'
 import { RANDOM_COLORS } from './colors'
+import { SelectApp } from './SelectApp'
 
-const DEFAULT_NAMES = [
-  'han',
-  'luke',
-  'leia',
-  'chewy',
-  'old ben'
-]
+// const DEFAULT_NAMES = [
+//   'han',
+//   'luke',
+//   'leia',
+//   'chewy',
+//   'old ben'
+// ]
 
 const getNames = () => {
   const rawNames = new URLSearchParams(window.location.search).get('names')
-  if (!rawNames) return DEFAULT_NAMES
+  if (!rawNames) return []
   try {
     return rawNames.split(',')
   } catch {
-    return DEFAULT_NAMES
+    return []
   }
 }
 
 async function go () {
   const selected: string[] = []
   const items = getNames()
-  const humans = new RotatingDeque({
-    items
-  })
+  const isNameSelectMode = !!items.length
+  const humans = new RotatingDeque({ items })
   const onEdgeHit: OnEdgeHit = ({ scene }) => {
     if (!humans.deque.length) return
     humans.rotate()
@@ -38,7 +38,7 @@ async function go () {
     scene.textNodes[1].setText(humans.deque[1 % humans.length])
     scene.textNodes[2].setText(humans.deque[2 % humans.length])
     scene.textNodes[3].setText(humans.deque[3 % humans.length])
-    renderSelectUs()
+    renderSelectApp()
   }
   const onCornerHit: OnEdgeHit = ({ corner, scene }) => {
     const cornerIdx =
@@ -55,7 +55,7 @@ async function go () {
     console.log(`selected: ${humans.deque[idxToSelect]}`)
     const _selected = humans.deque.splice(idxToSelect, 1)[0]
     selected.push(_selected)
-    renderSelected()
+    renderSelectApp()
     if (humans.length) {
       onEdgeHit({ scene })
     } else {
@@ -69,7 +69,7 @@ async function go () {
     backgroundColor: '#f00',
     parent: 'game',
     physics: { default: 'arcade' },
-    scene: new DvdScene({ active: true, onCornerHit, onEdgeHit })
+    scene: new DvdScene({ active: true, onCornerHit, onEdgeHit, isNameSelectMode })
   }
   new Phaser.Game(config) // eslint-disable-line
 
@@ -81,34 +81,25 @@ async function go () {
     {} as { [name: string]: string }
   )
 
-  const renderSelectUs = debounce(
+  const renderSelectApp = debounce(
     () => {
       const items: NameCard[] = humans.deque.map((name, i) => ({
         color: colorsByHumanName[name],
         name
       }))
       ReactDOM.render(
-        <SelectUs items={items} />,
-        window.document.getElementById('to_be_selected')
+        <SelectApp
+          toBeSelected={items}
+          selected={selected.map((name, i) => ({
+          color: colorsByHumanName[name],
+          name
+        }))}/>,
+        window.document.getElementById('select_app')
       )
     },
     100,
     { leading: true }
   )
-  const renderSelected = debounce(
-    () => {
-      const items: NameCard[] = selected.map((name, i) => ({
-        color: colorsByHumanName[name],
-        name
-      }))
-      ReactDOM.render(
-        <SelectUs items={items} />,
-        window.document.getElementById('selected')
-      )
-    },
-    100,
-    { leading: true }
-  )
-  renderSelectUs()
+  if (isNameSelectMode) renderSelectApp()
 }
 go()

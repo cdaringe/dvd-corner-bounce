@@ -1,5 +1,6 @@
 import React from 'react'
 import FlipMove from 'react-flip-move'
+import './SelectUs.css'
 
 export type NameCard = {
   color: string
@@ -11,6 +12,7 @@ export type Props = {
 }
 export const SelectUs: React.FunctionComponent<Props> = ({ items }) => (
   <FlipMove
+    className='SelectUs'
     easing='ease'
     duration={300}
     delay={0}
